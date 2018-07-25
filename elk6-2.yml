@@ -1,0 +1,115 @@
+- name: Java install
+  hosts: java
+  become: true
+  tasks:
+    - name: Download java JDK 8
+      get_url:
+        url: http://download.oracle.com/otn-pub/java/jdk/8u171-b11/512cd62ec5174c3487ac17c61aaa89e8/jdk-8u171-linux-x64.rpm
+        headers: 'Cookie: oraclelicense=accept-securebackup-cookie'
+    - name: install java
+      yum:
+        name: /down/jdk-8u171-linux-x64.rpm
+        state: present
+    - name: set java home
+      shell: echo JAVA_HOME=/usr/java/jdk1.8.0_171 >> /etc/environment
+    - name: source environment
+      shell: source /etc/environment
+- name: Kibana install
+  hosts: kibana
+  become: true
+  tasks:
+    - name: Download Kibana files
+      get_url:
+        url: https://artifacts.elastic.co/downloads/kibana/kibana-6.2.3-x86_64.rpm
+        dest: /down/kibana-6.2.3-x86_64.rpm
+    - name: Install Kibana
+      yum:
+        name: /down/kibana-6.2.3-x86_64.rpm
+        state: present
+    - name: Edit Kibana serverHost
+      lineinfile:
+        path: /etc/kibana/kibana.yml
+        regexp: server.host
+        line: 'server.host: "{{kibanahost}}"'
+    - name: Edit Kibana elastic
+      lineinfile:
+       path: /etc/kibana/kibana.yml
+       regexp: elasticsearch.url
+       line: 'elasticsearch.url: "http://{{elastichost}}:9200"'
+    - name: Kibana restarted
+      service:
+        name: kibana
+        state: restarted
+- name: elastic Install
+  hosts: elastic
+  become: true
+  tasks:
+    - name: download Elastic files
+      get_url:
+        url: https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.3.rpm
+        dest: /down/elasticsearch-6.2.3.rpm
+    - name: Install Elastic
+      yum:
+        name: /down/elasticsearch-6.2.3.rpm
+        state: present
+    - name: Edit ElasticConfig
+      lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regexp: http.port
+        line: 'http.port: 9200'
+    - name: Edit Elastic-nethost
+      lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regexp: network.host
+        line: 'network.host: "{{elastichost}}"'
+    - name: Elastic restarted
+      service:
+        name: elasticsearch
+        state: restarted
+- name: Logstash install
+  hosts: logstash
+  become: true
+  tasks:        
+    - name: download LogStash files
+      get_url:
+        url: https://artifacts.elastic.co/downloads/logstash/logstash-6.2.2.rpm
+        dest: /down/logstash-6.2.2.rpm
+    - name: Install Logstash
+      yum:
+        name: /down/logstash-6.2.2.rpm
+        state: present
+    - name: Copy logstashFilebeatConfig
+      copy:
+        src: files/02-beats-input.conf
+        dest: /etc/logstash/conf.d/02-beats-input.conf
+    - name: Copy logstashfilterConfig
+      copy:
+        src: files/10-syslog-filter.conf
+        dest: /etc/logstash/conf.d/10-syslog-filter.conf
+    - name: Template logstashElasticConfig
+      template:
+        src: files/30-elasticsearch-output.j2
+        dest: /etc/logstash/conf.d/30-elasticsearch-output.conf
+    - name: Logstach started
+      service:
+      name: logstash
+      state: started
+- name: FileBeat Install
+  hosts: filebeat
+  tasks:
+    - name: download FileBeat files
+      get_url:
+        url: https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-6.2.3-x86_64.rpm
+        dest: /down/filebeat-6.2.3-x86_64.rpm
+    - name: Install Filebeat
+      yum:
+        name: /down/filebeat-6.2.3-x86_64.rpm
+        state: present
+    - name: Template filebeat config
+      template:
+        src: files/filebeat.j2
+        dest: /etc/filebeat/filebeat.yml
+    - name: Filebeat restarted
+      service:
+        name: filebeat
+        state: restarted

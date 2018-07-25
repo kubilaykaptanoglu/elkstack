@@ -1,0 +1,9 @@
+output {
+  elasticsearch {
+    hosts => ["{{elastichost}}:9200"]
+    sniffing => false
+    manage_template => false
+    index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+    document_type => "%{[@metadata][type]}"
+  }
+}

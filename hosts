@@ -1,0 +1,12 @@
+[elastic]
+192.168.2.2  ansible_ssh_user=centos
+[java]
+192.168.2.2  ansible_ssh_user=centos
+192.168.2.3  ansible_ssh_user=centos
+192.168.2.4  ansible_ssh_user=centos
+[logstash]
+192.168.2.2  ansible_ssh_user=centos
+[kibana]
+192.168.2.3  ansible_ssh_user=centos
+[filebeat]
+192.168.2.4  ansible_ssh_user=centos
