@@ -1,6 +1,10 @@
 # elkstack
 Elasticsearch, logstash, kibana 6.2 Centos
 
+### Requirements
+Centos 7 OS <br/>
+Ansible 2.5 or 2.5+ <br/>
+Edit hosts file. <br/>
 
 ### Ansible Variables
 
