@@ -100,6 +100,7 @@
       state: started
 - name: FileBeat Install
   hosts: filebeat
+  become: true
   tasks:
     - name: download FileBeat files
       get_url:
